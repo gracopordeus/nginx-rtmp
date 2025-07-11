@@ -14,10 +14,9 @@ EXPOSE 8080
 # O host 'nginx-rtmp-service' é resolvido pela rede interna do Docker Compose.
 # O stream de saída HTTP-FLV será acessível em http://0.0.0.0:8080/live/celular_flv (dentro do container FFmpeg)
 # que será mapeado para a porta 8081 da VPS.
-CMD ["ffmpeg", \
-     "-i", "rtmp://nginx-rtmp-service:1935/live/celular_flv", \
-     "-c:v", "copy", \
-     "-f", "flv", "http://0.0.0.0:8080/live/celular_flv"]
+# ffmpeg-streamer/Dockerfile
+
+CMD ["sh", "-c", "sleep 10 && ffmpeg -i rtmp://nginx-rtmp-service:1935/live/celular_flv -c:v copy -f flv http://0.0.0.0:8080/live/celular_flv -listen 1"]
 
 # Notas:
 # - rtmp://nginx-rtmp-service:1935/live/celular_flv : 'nginx-rtmp-service' é o nome do serviço no docker-compose.yml.
