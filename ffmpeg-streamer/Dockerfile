@@ -3,7 +3,7 @@
 # Usamos uma imagem Docker com FFmpeg completo
 # jrottenberg/ffmpeg:4.4-full é uma boa opção para começar.
 # Se precisar de SRT, verifique se a imagem base suporta ou compile.
-FROM jrottenberg/ffmpeg:4.4-full
+FROM jrottenberg/ffmpeg:6.1-ubuntu
 
 # Expose a porta onde o FFmpeg vai servir o HTTP-FLV
 EXPOSE 8080
