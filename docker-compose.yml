@@ -2,23 +2,10 @@
 version: '3.8'
 
 services:
-  nginx-rtmp-service:
-    build:
-      context: ./nginx-rtmp # O Dockerfile para este serviço está em ./nginx-rtmp
-    container_name: nginx-rtmp-receiver
-    restart: always
+  nginx-rtmp:
+    build: ./nginx-rtmp
     ports:
-      - "1935:1935" # Apenas a porta RTMP é exposta para o celular
-
-  ffmpeg-streamer-service:
-    build:
-      context: ./ffmpeg-streamer # O Dockerfile para este serviço está em ./ffmpeg-streamer
-    container_name: ffmpeg-http-flv-streamer
+      - "1935:1935" # Porta do RTMP
+      - "8080:8080" # Porta para estatísticas (opcional)
+    container_name: nginx-rtmp
     restart: always
-    ports:
-      - "8081:8080" # Porta HTTP-FLV para o Google Colab:
-                   # 8081 na VPS (público) -> 8080 no container ffmpeg (interno)
-    
-    # Garante que o ffmpeg só inicie depois que o nginx-rtmp-service estiver UP
-    depends_on:
-      - nginx-rtmp-service
