@@ -5,24 +5,11 @@ services:
     build: ./nginx-rtmp
     container_name: nginx-rtmp
     ports:
-      - "1935:1935"   # RTMP streaming
-      - "8080:80"     # HTTP (para futuro uso, como HLS ou status)
+      - "1935:1935"   # RTMP
+      - "8080:80"     # HTTP, se quiser usar HLS depois
     restart: unless-stopped
     networks:
       - rtmp_net
-
-  ffmpeg-streamer:
-    build: ./ffmpeg-streamer
-    container_name: ffmpeg-streamer
-    depends_on:
-      - nginx-rtmp
-    restart: unless-stopped
-    networks:
-      - rtmp_net
-    environment:
-      - CAMERA_URL=http://host.docker.internal:8080/video
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
 networks:
   rtmp_net:
