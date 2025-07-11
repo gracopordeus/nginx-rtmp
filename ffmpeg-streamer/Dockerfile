@@ -16,7 +16,7 @@ EXPOSE 8080
 # que será mapeado para a porta 8081 da VPS.
 # ffmpeg-streamer/Dockerfile
 
-CMD ["sh", "-c", "sleep 10 && ffmpeg -i rtmp://nginx-rtmp-service:1935/live/celular_flv -c:v copy -f flv http://0.0.0.0:8080/live/celular_flv -listen 1"]
+CMD sleep 10 && ffmpeg -i rtmp://nginx-rtmp-service:1935/live/celular_flv -c:v copy -f flv http://0.0.0.0:8080/live/celular_flv -listen 1
 
 # Notas:
 # - rtmp://nginx-rtmp-service:1935/live/celular_flv : 'nginx-rtmp-service' é o nome do serviço no docker-compose.yml.
