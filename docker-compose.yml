@@ -1,26 +1,25 @@
+# docker-compose.yml
 version: '3.8'
 
 services:
-  nginx:
-    # A mudança principal: em vez de usar uma imagem pronta,
-    # ele constrói a imagem a partir do Dockerfile na pasta atual.
-    build: .
-    container_name: nginx-stream
-    restart: unless-stopped
-    ports:
-      - "1935:1935"
+  rtmp-server:
+    build:./rtmp-server
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./data/certbot/conf:/etc/letsencrypt:ro
-      - ./data/certbot/www:/var/www/certbot:ro
-      - /tmp/hls:/tmp/hls
-    command: /bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'
+      - hls-data:/var/hls
+    networks:
+      - easypanel-network # Substituir pelo nome da rede do seu projeto EasyPanel
 
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    restart: unless-stopped
+  web-player:
+    build:./web-player
     volumes:
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+      - hls-data:/usr/share/nginx/html
+    networks:
+      - easypanel-network # Substituir pelo nome da rede do seu projeto EasyPanel
+    # As configurações de domínio e proxy para este serviço serão feitas na UI do EasyPanel
+
+volumes:
+  hls-data:
+
+networks:
+  easypanel-network:
+    external: true
