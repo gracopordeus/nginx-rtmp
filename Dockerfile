@@ -2,7 +2,7 @@
 FROM tiangolo/nginx-rtmp:latest
 
 # Remove a configuração padrão para evitar conflitos
-RUN rm /etc/nginx/conf.d/default.conf
+RUN rm -f /etc/nginx/conf.d/default.conf
 
 # Copia sua configuração personalizada do NGINX
 COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
