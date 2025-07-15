@@ -1,52 +1,58 @@
-# Alterado para uma versão mais recente do Debian com suporte
+# Usa a versão do Debian que já sabemos que funciona
 FROM debian:bullseye-slim
 
-# Define as versões para consistência
+# Define as versões dos componentes
 ENV NGINX_VERSION 1.21.6
 ENV RTMP_MODULE_VERSION 1.2.2
-ENV DEBIAN_FRONTEND noninteractive
-# Mantém a instrução para o git não ser interativo
-ENV GIT_TERMINAL_PROMPT=0
 
-# Instala as dependências necessárias para compilar
+# Instala as dependências - trocamos 'git' por 'wget'
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpcre3-dev \
     libssl-dev \
     zlib1g-dev \
-    git \
+    wget \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Baixa os códigos-fonte usando o protocolo git://
-RUN git clone --depth 1 --branch release-${NGINX_VERSION} git://github.com/nginx/nginx.git /usr/src/nginx
-RUN git clone --depth 1 --branch v${RTMP_MODULE_VERSION} git://github.com/arut/nginx-rtmp-module.git /usr/src/nginx-rtmp-module
-RUN git clone --depth 1 git://github.com/VOVKE/nginx-srt-module.git /usr/src/nginx-srt-module
+# Define o diretório de trabalho para baixar os fontes
+WORKDIR /usr/src
 
-# Entra no diretório do NGINX
-WORKDIR /usr/src/nginx
+# Baixa os códigos-fonte usando wget (protocolo HTTPS)
+RUN wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
+    && wget https://github.com/arut/nginx-rtmp-module/archive/refs/tags/v${RTMP_MODULE_VERSION}.tar.gz -O nginx-rtmp.tar.gz \
+    && wget https://github.com/VOVKE/nginx-srt-module/archive/refs/heads/master.tar.gz -O nginx-srt.tar.gz
 
-# Configura, compila e instala o NGINX com os dois módulos
-RUN ./auto/configure \
+# Extrai os arquivos baixados
+RUN tar -xzvf nginx-${NGINX_VERSION}.tar.gz \
+    && tar -xzvf nginx-rtmp.tar.gz \
+    && tar -xzvf nginx-srt.tar.gz
+
+# Entra no diretório do NGINX extraído para compilar
+WORKDIR /usr/src/nginx-${NGINX_VERSION}
+
+# Configura, compila e instala o NGINX com os módulos
+# Os caminhos dos módulos agora apontam para os diretórios extraídos
+RUN ./configure \
     --with-threads \
     --with-http_ssl_module \
-    --add-module=/usr/src/nginx-rtmp-module \
-    --add-module=/usr/src/nginx-srt-module \
+    --add-module=../nginx-rtmp-module-${RTMP_MODULE_VERSION} \
+    --add-module=../nginx-srt-module-master \
     && make \
     && make install
 
-# Limpa os arquivos de compilação para reduzir o tamanho da imagem
+# Limpa os arquivos de compilação
 RUN rm -rf /usr/src/*
 
-# Copia sua nova configuração do NGINX
+# Copia sua configuração do NGINX (nenhuma mudança necessária aqui)
 COPY ./nginx/nginx.conf /usr/local/nginx/conf/nginx.conf
 
-# Copia os arquivos do seu frontend para o diretório web padrão do NGINX
+# Copia os arquivos do seu frontend (nenhuma mudança necessária aqui)
 COPY ./frontend /usr/local/nginx/html
 
 # Expõe as portas que o NGINX vai usar
 EXPOSE 80
 EXPOSE 10000/udp
 
-# Comando para iniciar o NGINX em modo foreground
+# Comando para iniciar o NGINX
 CMD ["/usr/local/nginx/sbin/nginx", "-g", "daemon off;"]
