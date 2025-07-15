@@ -1,0 +1,49 @@
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Player de Streaming HLS</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f0f0f0; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        #videoContainer { max-width: 800px; width: 100%; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        video { width: 100%; display: block; }
+        h1 { color: #333; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+    <h1>Visualizador de Câmera ao Vivo</h1>
+    <div id="videoContainer">
+        <video id="videoPlayer" controls autoplay muted></video>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const video = document.getElementById('videoPlayer');
+            // Substitua pelo IP do seu servidor EasyPanel.
+            // O caminho /live/livestream.m3u8 corresponde ao streamid que usamos no FFmpeg.
+            const videoSrc = 'http://<IP_DO_SEU_SERVIDOR_EASYPANEL>:8080/live/livestream.m3u8';
+
+            // Verifica se o navegador suporta HLS.js (Media Source Extensions) [28, 29]
+            if (Hls.isSupported()) {
+                console.log("HLS.js é suportado. Inicializando player...");
+                const hls = new Hls();
+                hls.loadSource(videoSrc);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play().catch(e => console.error("Autoplay bloqueado:", e));
+                });
+            } 
+            // Fallback para navegadores com suporte nativo a HLS (como o Safari) [26]
+            else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                console.log("Suporte nativo a HLS detectado.");
+                video.src = videoSrc;
+                video.addEventListener('loadedmetadata', function() {
+                    video.play().catch(e => console.error("Autoplay bloqueado:", e));
+                });
+            } else {
+                alert('Seu navegador não suporta streaming HLS.');
+            }
+        });
+    </script>
+</body>
+</html>
