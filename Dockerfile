@@ -1,28 +1,20 @@
-# Usa uma imagem base Alpine Linux, que é leve
-FROM alpine:latest
+# Usa uma imagem base Alpine Linux, que é leve e inclui o ffmpeg
+FROM alpine/ffmpeg:latest
 
-# Instala Nginx, openssl e dependências para compilar
-RUN apk add --no-cache nginx ffmpeg openssl-dev build-base pcre-dev zlib-dev
+# Define a porta padrão do SRT (pode ser qualquer uma acima de 1024 que esteja livre)
+# Vamos usar 5000 para este exemplo
+ENV SRT_PORT 5000
 
-# Baixa e compila o módulo Nginx RTMP
-RUN wget https://github.com/arut/nginx-rtmp-module/archive/v1.2.1.zip -O nginx-rtmp-module.zip \
-    && unzip nginx-rtmp-module.zip \
-    && rm nginx-rtmp-module.zip \
-    && cd nginx-rtmp-module-1.2.1 \
-    && NGINX_VERSION=$(nginx -v 2>&1 | grep -oP 'nginx/\K[^ ]+') \
-    && wget http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -O nginx.tar.gz \
-    && tar -xzf nginx.tar.gz \
-    && rm nginx.tar.gz \
-    && cd nginx-$NGINX_VERSION \
-    && ./configure --with-compat --add-dynamic-module=../nginx-rtmp-module-1.2.1 \
-    && make modules \
-    && cp objs/*.so /etc/nginx/modules/
+# Expõe a porta SRT
+EXPOSE ${SRT_PORT}/udp
 
-# Copia o arquivo de configuração do Nginx personalizado
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Expõe as portas necessárias (RTMP padrão é 1935)
-EXPOSE 1935
-
-# Comando para iniciar o Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# O comando que será executado quando o contêiner iniciar.
+# ffmpeg irá "ouvir" (listen) na porta especificada para o stream SRT.
+# -i srt://0.0.0.0:${SRT_PORT}?mode=listener : Define o input como SRT, escutando em todas as interfaces.
+# -c copy : Copia o stream de vídeo e áudio sem re-encode. Isso economiza CPU.
+# -f mpegts : Formato de saída para facilitar o acesso via outro ffmpeg/OpenCV no Python.
+# udp://127.0.0.1:12345 : Envia o stream decodificado para uma porta UDP interna.
+# Isso cria um "túnel" dentro do contêiner que pode ser acessado pelo seu script Python.
+CMD ffmpeg -i srt://0.0.0.0:${SRT_PORT}?mode=listener \
+           -c copy \
+           -f mpegts udp://127.0.0.1:12345
