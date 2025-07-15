@@ -1,5 +1,5 @@
-# Usamos uma imagem base Debian para ter as ferramentas de compilação
-FROM debian:buster-slim
+# Alterado para uma versão mais recente do Debian com suporte
+FROM debian:bullseye-slim
 
 # Define as versões para consistência
 ENV NGINX_VERSION 1.21.6
