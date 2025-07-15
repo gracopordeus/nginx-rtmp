@@ -1,12 +1,13 @@
 version: '3.8'
 
 services:
-  # Nosso serviço único que faz tudo
+  # Nosso serviço único que agora suporta SRT
   streaming-service:
     build: .
-    # Não defina 'ports' aqui para 80 ou 443. O EasyPanel/Traefik gerencia isso.
     networks:
-      - easypanel # Nome padrão da rede, confirme na sua UI do EasyPanel se necessário
+      - easypanel
+    # Aumenta o limite de memória compartilhada, útil para streaming
+    shm_size: '2gb'
 
 networks:
   easypanel:
