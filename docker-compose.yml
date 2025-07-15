@@ -22,7 +22,7 @@ services:
       - "8081:80"        # Porta HTTP (TCP) para o player web e entrega HLS 
     volumes:
       - ./web/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./web/html:/usr/share/nginx/html:ro
+      - ./web/html/index.html:/usr/share/nginx/html/index.html:ro
       - hls-data:/usr/share/nginx/html/hls:ro
     depends_on:
       - srs-server
