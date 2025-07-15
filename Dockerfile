@@ -5,6 +5,8 @@ FROM debian:bullseye-slim
 ENV NGINX_VERSION 1.21.6
 ENV RTMP_MODULE_VERSION 1.2.2
 ENV DEBIAN_FRONTEND noninteractive
+# Nova linha para instruir o git a não ser interativo
+ENV GIT_TERMINAL_PROMPT=0
 
 # Instala as dependências necessárias para compilar
 RUN apt-get update && apt-get install -y --no-install-recommends \
