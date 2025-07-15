@@ -1,20 +1,35 @@
-# Usa uma imagem base Alpine Linux, que é leve e inclui o ffmpeg
-FROM alpine/ffmpeg:latest
+# Usa uma imagem base Python slim para ser leve, com o Debian Bullseye
+FROM python:3.9-slim-bullseye
 
-# Define a porta padrão do SRT (pode ser qualquer uma acima de 1024 que esteja livre)
-# Vamos usar 5000 para este exemplo
+# Define a variável de ambiente para a porta SRT.
+# Você pode alterar esta porta, mas certifique-se de que corresponda no EasyPanel e no IP Webcam.
 ENV SRT_PORT 5000
 
-# Expõe a porta SRT
+# Instala ffmpeg e outras dependências de sistema necessárias para o OpenCV
+# (libsm6 e libxext6 são comuns para evitar erros de exibição headless com OpenCV)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copia o arquivo de requisitos para que o pip possa instalá-los
+COPY requirements.txt /app/requirements.txt
+
+# Define o diretório de trabalho dentro do contêiner
+WORKDIR /app
+
+# Instala as dependências Python
+# --no-cache-dir para economizar espaço
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copia o seu script Python para dentro do contêiner
+COPY srt_inference_script.py /app/srt_inference_script.py
+
+# Expõe a porta UDP para o stream SRT.
+# É crucial que o protocolo seja UDP.
 EXPOSE ${SRT_PORT}/udp
 
-# O comando que será executado quando o contêiner iniciar.
-# ffmpeg irá "ouvir" (listen) na porta especificada para o stream SRT.
-# -i srt://0.0.0.0:${SRT_PORT}?mode=listener : Define o input como SRT, escutando em todas as interfaces.
-# -c copy : Copia o stream de vídeo e áudio sem re-encode. Isso economiza CPU.
-# -f mpegts : Formato de saída para facilitar o acesso via outro ffmpeg/OpenCV no Python.
-# udp://127.0.0.1:12345 : Envia o stream decodificado para uma porta UDP interna.
-# Isso cria um "túnel" dentro do contêiner que pode ser acessado pelo seu script Python.
-CMD ffmpeg -i srt://0.0.0.0:${SRT_PORT}?mode=listener \
-           -c copy \
-           -f mpegts udp://127.0.0.1:12345
+# Comando que será executado quando o contêiner iniciar.
+# Ele irá rodar o seu script Python.
+CMD ["python", "srt_inference_script.py"]
