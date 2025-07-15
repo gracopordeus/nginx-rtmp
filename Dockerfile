@@ -18,21 +18,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Define o diretório de trabalho para baixar os fontes
 WORKDIR /usr/src
 
-# Baixa os códigos-fonte usando wget (protocolo HTTPS)
-RUN wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
-    && wget https://github.com/arut/nginx-rtmp-module/archive/refs/tags/v${RTMP_MODULE_VERSION}.tar.gz -O nginx-rtmp.tar.gz \
-    && wget https://github.com/VOVKE/nginx-srt-module/archive/refs/heads/master.tar.gz -O nginx-srt.tar.gz
+# --- CORREÇÃO APLICADA AQUI ---
+# Baixa os códigos-fonte usando wget em um formato multi-linha para clareza e robustez
+RUN wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz && \
+    wget -q https://github.com/arut/nginx-rtmp-module/archive/refs/tags/v${RTMP_MODULE_VERSION}.tar.gz -O nginx-rtmp.tar.gz && \
+    wget -q https://github.com/VOVKE/nginx-srt-module/archive/refs/heads/master.tar.gz -O nginx-srt.tar.gz
 
 # Extrai os arquivos baixados
-RUN tar -xzvf nginx-${NGINX_VERSION}.tar.gz \
-    && tar -xzvf nginx-rtmp.tar.gz \
-    && tar -xzvf nginx-srt.tar.gz
+RUN tar -xzvf nginx-${NGINX_VERSION}.tar.gz && \
+    tar -xzvf nginx-rtmp.tar.gz && \
+    tar -xzvf nginx-srt.tar.gz
 
 # Entra no diretório do NGINX extraído para compilar
 WORKDIR /usr/src/nginx-${NGINX_VERSION}
 
 # Configura, compila e instala o NGINX com os módulos
-# Os caminhos dos módulos agora apontam para os diretórios extraídos
 RUN ./configure \
     --with-threads \
     --with-http_ssl_module \
@@ -44,13 +44,13 @@ RUN ./configure \
 # Limpa os arquivos de compilação
 RUN rm -rf /usr/src/*
 
-# Copia sua configuração do NGINX (nenhuma mudança necessária aqui)
+# Copia sua configuração do NGINX
 COPY ./nginx/nginx.conf /usr/local/nginx/conf/nginx.conf
 
-# Copia os arquivos do seu frontend (nenhuma mudança necessária aqui)
+# Copia os arquivos do seu frontend
 COPY ./frontend /usr/local/nginx/html
 
-# Expõe as portas que o NGINX vai usar
+# Expõe as portas
 EXPOSE 80
 EXPOSE 10000/udp
 
