@@ -5,7 +5,7 @@ FROM debian:bullseye-slim
 ENV NGINX_VERSION 1.21.6
 ENV RTMP_MODULE_VERSION 1.2.2
 ENV DEBIAN_FRONTEND noninteractive
-# Nova linha para instruir o git a não ser interativo
+# Mantém a instrução para o git não ser interativo
 ENV GIT_TERMINAL_PROMPT=0
 
 # Instala as dependências necessárias para compilar
@@ -18,14 +18,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Baixa o código-fonte do NGINX
-RUN git clone --depth 1 --branch release-${NGINX_VERSION} https://github.com/nginx/nginx.git /usr/src/nginx
-
-# Baixa o código-fonte do módulo NGINX-RTMP
-RUN git clone --depth 1 --branch v${RTMP_MODULE_VERSION} https://github.com/arut/nginx-rtmp-module.git /usr/src/nginx-rtmp-module
-
-# Baixa o código-fonte do módulo NGINX-SRT
-RUN git clone --depth 1 https://github.com/VOVKE/nginx-srt-module.git /usr/src/nginx-srt-module
+# Baixa os códigos-fonte usando o protocolo git://
+RUN git clone --depth 1 --branch release-${NGINX_VERSION} git://github.com/nginx/nginx.git /usr/src/nginx
+RUN git clone --depth 1 --branch v${RTMP_MODULE_VERSION} git://github.com/arut/nginx-rtmp-module.git /usr/src/nginx-rtmp-module
+RUN git clone --depth 1 git://github.com/VOVKE/nginx-srt-module.git /usr/src/nginx-srt-module
 
 # Entra no diretório do NGINX
 WORKDIR /usr/src/nginx
