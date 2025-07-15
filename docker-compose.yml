@@ -11,13 +11,3 @@ services:
       - "10080:10080/udp"
     volumes:
       - ./srs.conf:/usr/local/srs/conf/srs.conf
-
-  ml_processor:
-    build:
-      context: .
-      dockerfile: Dockerfile.ml_processor
-    container_name: ml-processor-service
-    restart: always
-    volumes:
-      - ./ml_processor.py:/app/ml_processor.py
-      - ./requirements.txt:/app/requirements.txt
