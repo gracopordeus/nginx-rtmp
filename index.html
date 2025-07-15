@@ -1,0 +1,70 @@
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player de Streaming SRS</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f0f0f0; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        h1 { color: #333; }
+        #video-container { max-width: 800px; width: 100%; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        video { width: 100%; display: block; background-color: #000; }
+    </style>
+</head>
+<body>
+    <h1>Meu Stream ao Vivo</h1>
+    <div id="video-container">
+        <video id="video" controls autoplay muted></video>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const video = document.getElementById('video');
+            // Substitua 'live/livestream' se você usar um app/stream diferente
+            const streamName = 'live/livestream'; 
+            const videoSrc = `/hls/${streamName}.m3u8`;
+
+            if (Hls.isSupported()) {
+                console.log("HLS.js é suportado. Inicializando o player.");
+                const hls = new Hls();
+                hls.loadSource(videoSrc);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    console.log("Manifesto carregado, tentando reproduzir.");
+                    video.play().catch(error => {
+                        console.error("Erro ao tentar reproduzir o vídeo:", error);
+                    });
+                });
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    if (data.fatal) {
+                        switch(data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                console.error("Erro de rede fatal, tentando recuperar...", data);
+                                hls.startLoad();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                console.error("Erro de mídia fatal, tentando recuperar...", data);
+                                hls.recoverMediaError();
+                                break;
+                            default:
+                                console.error("Erro fatal irrecuperável", data);
+                                hls.destroy();
+                                break;
+                        }
+                    }
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                console.log("Suporte nativo a HLS detectado (ex: Safari).");
+                video.src = videoSrc;
+                video.addEventListener('loadedmetadata', function() {
+                    video.play().catch(error => {
+                        console.error("Erro ao tentar reproduzir o vídeo nativamente:", error);
+                    });
+                });
+            } else {
+                alert("Seu navegador não suporta HLS.");
+            }
+        });
+    </script>
+</body>
+</html>
