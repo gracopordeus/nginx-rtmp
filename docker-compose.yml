@@ -3,14 +3,12 @@ version: '3.8'
 
 services:
   rtmp-server:
-    build:./rtmp-server
     volumes:
       - hls-data:/var/hls
     networks:
       - easypanel-network # Substituir pelo nome da rede do seu projeto EasyPanel
 
   web-player:
-    build:./web-player
     volumes:
       - hls-data:/usr/share/nginx/html
     networks:
