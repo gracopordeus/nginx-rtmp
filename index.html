@@ -1,49 +1,68 @@
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Player de Streaming HLS</title>
+    <title>Player de Streaming HTTP-FLV</title>
     <style>
-        body { font-family: sans-serif; background-color: #f0f0f0; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        #videoContainer { max-width: 800px; width: 100%; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        video { width: 100%; display: block; }
-        h1 { color: #333; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+        #videoContainer {
+            width: 100%;
+            max-width: 900px;
+            border: 1px solid #333;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+            background-color: #000;
+        }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
-    <h1>Visualizador de Câmera ao Vivo</h1>
+
+    <h1>Visualizador de Stream ao Vivo</h1>
+
     <div id="videoContainer">
-        <video id="videoPlayer" controls autoplay muted></video>
+        <video id="videoElement" controls autoplay muted></video>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const video = document.getElementById('videoPlayer');
-            // Substitua pelo IP do seu servidor EasyPanel.
-            // O caminho /live/livestream.m3u8 corresponde ao streamid que usamos no FFmpeg.
-            const videoSrc = 'http://195.200.0.55:8080/live/livestream.m3u8';
+    <script src="https://cdn.jsdelivr.net/npm/flv.js@latest/dist/flv.min.js"></script>
 
-            // Verifica se o navegador suporta HLS.js (Media Source Extensions) [28, 29]
-            if (Hls.isSupported()) {
-                console.log("HLS.js é suportado. Inicializando player...");
-                const hls = new Hls();
-                hls.loadSource(videoSrc);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play().catch(e => console.error("Autoplay bloqueado:", e));
-                });
-            } 
-            // Fallback para navegadores com suporte nativo a HLS (como o Safari) [26]
-            else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                console.log("Suporte nativo a HLS detectado.");
-                video.src = videoSrc;
-                video.addEventListener('loadedmetadata', function() {
-                    video.play().catch(e => console.error("Autoplay bloqueado:", e));
-                });
-            } else {
-                alert('Seu navegador não suporta streaming HLS.');
-            }
-        });
+    <script>
+        if (flvjs.isSupported()) {
+            const videoElement = document.getElementById('videoElement');
+            const flvPlayer = flvjs.createPlayer({
+                type: 'flv',
+                isLive: true,
+                // URL configurada para o seu servidor
+                url: 'http://195.200.0.55:8080/live/stream.flv'
+            });
+
+            flvPlayer.attachMediaElement(videoElement);
+            flvPlayer.load();
+            
+            flvPlayer.play().catch(error => {
+                console.error("Autoplay foi bloqueado pelo navegador.", error);
+            });
+        } else {
+            alert('Seu navegador não suporta a tecnologia necessária para este player.');
+        }
     </script>
+
 </body>
 </html>
