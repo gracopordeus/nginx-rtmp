@@ -1,23 +1,13 @@
-# docker-compose.yml
 version: '3.8'
 
 services:
-  rtmp-server:
-    volumes:
-      - hls-data:/var/hls
+  # Nosso serviço único que faz tudo
+  streaming-service:
+    build: .
+    # Não defina 'ports' aqui para 80 ou 443. O EasyPanel/Traefik gerencia isso.
     networks:
-      - easypanel-network # Substituir pelo nome da rede do seu projeto EasyPanel
-
-  web-player:
-    volumes:
-      - hls-data:/usr/share/nginx/html
-    networks:
-      - easypanel-network # Substituir pelo nome da rede do seu projeto EasyPanel
-    # As configurações de domínio e proxy para este serviço serão feitas na UI do EasyPanel
-
-volumes:
-  hls-data:
+      - easypanel # Nome padrão da rede, confirme na sua UI do EasyPanel se necessário
 
 networks:
-  easypanel-network:
+  easypanel:
     external: true
